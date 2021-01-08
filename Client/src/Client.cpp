@@ -25,5 +25,6 @@ int main (int argc, char *argv[]) {
     Reader reader(&connectionHandler, c, mut);
     std::thread writer(&Reader::write,&reader);
     reader.read();
+	writer.join();
     return 0;
 }

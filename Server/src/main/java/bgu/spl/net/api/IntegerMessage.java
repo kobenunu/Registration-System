@@ -26,6 +26,9 @@ public class IntegerMessage extends Message<Integer>{
             return courseReg(user);
         }
         if (opcode==6){
+            if(user.isAdmin()){
+                return createError(opcode);
+            }
             return kdamCheck();
         }
         if (opcode==7){
