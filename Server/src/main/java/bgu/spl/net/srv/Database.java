@@ -3,7 +3,6 @@ package bgu.spl.net.srv;
 import bgu.spl.net.api.Course;
 import bgu.spl.net.api.User;
 
-import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,8 +22,6 @@ public class Database {
     private ConcurrentHashMap<String, User> users;
     private ConcurrentHashMap<Integer, Course> courses;
     private Object usersLock;
-    private Object coursesLock;
-
 
 
     //to prevent user from creating new Database
@@ -56,9 +53,10 @@ public class Database {
         try {
             reader = new BufferedReader(new FileReader(coursesFilePath));
             String line = reader.readLine();
+            Vector<Course> coursesvector = new Vector<>();
             int order = 1;
             while (line != null) {
-//                System.out.println("the whole line of the course is " + line);
+                Vector<Integer> thisCourseVector = new Vector<>();
                 int i = 0;
                 String courseStringNumber = "";
                 while (line.charAt(i)!='|'){
@@ -67,7 +65,6 @@ public class Database {
                     i++;
                 }
                 int courseNumber = Integer.parseInt(courseStringNumber);
-//                System.out.println("course number is " + courseNumber);
                 i++;
                 String courseName = "";
                 while (line.charAt(i)!='|'){
@@ -75,7 +72,6 @@ public class Database {
                     courseName = courseName + next;
                     i++;
                 }
-//                System.out.println("course name is " + courseName);
                 i++;
                 Vector<Integer> kdam = new Vector<>();
                 String nextKdamCourseNumber = "";
@@ -91,7 +87,6 @@ public class Database {
                     }
                     i++;
                 }
-//                System.out.println("kdam courses are " + kdam.toString());
                 i++;
                 String maxStudentsString = "";
                 while (i<line.length()){
@@ -100,13 +95,16 @@ public class Database {
                     i++;
                 }
                 int maxStudents = Integer.parseInt(maxStudentsString);
-//                System.out.println("max students is " + maxStudents);
-
                 Course newCourse = new Course(order, courseNumber, courseName, kdam, maxStudents);
                 courses.putIfAbsent(courseNumber, newCourse);
+                coursesvector.add(newCourse);
                 order++;
                 // read next line
                 line = reader.readLine();
+            }
+            for (int i = 0; i<coursesvector.size(); i++){
+                Course b = coursesvector.get(i);
+                sortKdam(b.getKdamAsVector());
             }
             reader.close();
         } catch (IOException e) {
@@ -114,6 +112,20 @@ public class Database {
             return false;
         }
         return true;
+    }
+
+    private void sortKdam(Vector<Integer> kdam){
+        Vector<Course> tmp = new Vector<>();
+        for (int i = 0; i<kdam.size(); i++){
+            Course tmpCourse = courses.get(kdam.get(i));
+            int j = 0;
+            int order = tmpCourse.getOrderNumber();
+            while (j<tmp.size()&&order>tmp.get(j).getOrderNumber()) j++;
+            tmp.add(j, tmpCourse);
+        }
+        for (int i = 0;i<kdam.size();i++){
+            kdam.set(i, tmp.get(i).getCourseNumber());
+        }
     }
 
     public User registerAdmin(String username, String password) throws IllegalAccessException{
@@ -289,5 +301,4 @@ public class Database {
         }
         throw new IllegalAccessException("no such student");
     }
-
 }

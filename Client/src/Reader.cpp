@@ -20,6 +20,9 @@ bool Reader::read() {
             cv.notify_all();
             break;
         }
+	else{
+	cv.notify_all();
+}
     }
     return false;
 }
